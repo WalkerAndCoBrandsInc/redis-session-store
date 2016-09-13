@@ -575,6 +575,13 @@ describe RedisSessionStore do
       _, session = store.send(:get_session, env, sid)
       expect(session).to eq(data2)
     end
+  end
 
+  it "grabs a lock based on the session ID" do
+    sid = 1234
+    redis_instance = Redis.new
+    allow(store).to receive(:redis).and_return(redis_instance)
+    expect(redis_instance).to receive(:lock).with(sid)
+    store.send(:set_session, {}, sid, {})
   end
 end
