@@ -5,7 +5,7 @@ require 'redis-lock'
 # Redis session storage for Rails, and for Rails only. Derived from
 # the MemCacheStore code, simply dropping in Redis instead.
 class RedisSessionStore < ActionDispatch::Session::AbstractStore
-  VERSION = '0.8.1'
+  VERSION = '0.9.0'
   # Rails 3.1 and beyond defines the constant elsewhere
   unless defined?(ENV_SESSION_OPTIONS_KEY)
     if Rack.release.split('.').first.to_i > 1
@@ -131,7 +131,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
     # compare changes
     deleted_keys = env['redis_store.memoed_session'].keys - session_data.keys
     added_or_changed_hash = Hash[*(session_data.to_a - env['redis_store.memoed_session'].to_a).flatten]
-    redis.lock("set_session") do |lock|
+    redis.lock(sid) do |lock|
       fresh_session = load_session_from_redis(sid) # grab most recent session, locked
       updated_session = fresh_session.reject { |k,v| deleted_keys.include?(k) }
       updated_session.merge!(added_or_changed_hash)
