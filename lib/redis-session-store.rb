@@ -132,6 +132,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
     deleted_keys = env['redis_store.memoed_session'].keys - session_data.keys
     added_or_changed_hash = Hash[*(session_data.to_a - env['redis_store.memoed_session'].to_a).flatten]
     redis.lock(sid) do |lock|
+      sleep(5)
       fresh_session = load_session_from_redis(sid) # grab most recent session, locked
       updated_session = fresh_session.reject { |k,v| deleted_keys.include?(k) }
       updated_session.merge!(added_or_changed_hash)
