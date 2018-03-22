@@ -137,7 +137,7 @@ describe RedisSessionStore do
 
     let(:env)          { {} }
     let(:session_id)   { 12_345 }
-    let(:session_data) { double('session_data', keys: [], to_a: []) }
+    let(:session_data) { {} }
     let(:options)      { { expire_after: 123 } }
 
     context 'when successfully persisting the session' do
@@ -571,6 +571,18 @@ describe RedisSessionStore do
       data1 = { 'foo' => 'bar' }
       store.send(:set_session, env, sid, data1)
       data2 = { 'foo' => 'not_bar' }
+      store.send(:set_session, env, sid, data2)
+      _, session = store.send(:get_session, env, sid)
+      expect(session).to eq(data2)
+    end
+
+    it 'correctly serializes nested array values' do
+      env = { 'rack.session.options' => {} }
+      sid = 1234
+      allow(store).to receive(:redis).and_return(Redis.new)
+      data1 = { 'foo' => 'bar' }
+      store.send(:set_session, env, sid, data1)
+      data2 = { 'foo' => ['nested_1', 'nested_2']}
       store.send(:set_session, env, sid, data2)
       _, session = store.send(:get_session, env, sid)
       expect(session).to eq(data2)
